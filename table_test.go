@@ -43,7 +43,7 @@ func TestTable(t *testing.T) {
 		Row(2).
 		Column(3).
 		Values(4, Sum, Digits(0))
-	err := table.Generate()
+	err := table.Generate(false)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -54,7 +54,7 @@ func TestTable(t *testing.T) {
 		Column(2).
 		Column(3).
 		Values(4, Sum, Digits(0))
-	err = table.Generate()
+	err = table.Generate(false)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -88,7 +88,7 @@ func TestComputeSet(t *testing.T) {
 		Values(3, Count, Digits(0)).
 		ComputedValues("V4/V2", DataRefs([]int{5, 3}, Sum), compute, Digits(2)).
 		Values(4, Sum, Digits(0))
-	err := table.Generate()
+	err := table.Generate(false)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}

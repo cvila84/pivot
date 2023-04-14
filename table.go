@@ -86,7 +86,7 @@ func NewTable(data [][]interface{}, dataHeaders bool) *Table[float64] {
 	}
 }
 
-func (t *Table[T]) updateCell(rowLabel string, columnLabel string, record []interface{}) error {
+func (t *Table[T]) updateCell(rowLabel string, columnLabel string, record []interface{}, verbose bool) error {
 	rr, ok := t.cells[rowLabel]
 	if !ok {
 		rr = make(map[string]cell[T])
@@ -103,15 +103,19 @@ func (t *Table[T]) updateCell(rowLabel string, columnLabel string, record []inte
 	}
 	for k := range t.registeredVIndexes {
 		value, err := t.cellValue(record[k.index])
-		if err != nil {
-			return fmt.Errorf("while updating cell: %w", err)
+		if err != nil && err != ErrEmptyValue {
+			return fmt.Errorf("while updating cell[%q,%q] with record %v: %w", rowLabel, columnLabel, record, err)
+		} else if err == ErrEmptyValue && verbose {
+			fmt.Printf("WARNING: found record %v with empty value while updating cell[%q,%q]\n", record, rowLabel, columnLabel)
 		}
 		rc.Record(k, value)
 	}
 	for is, serie := range t.valueSeries {
 		err := rc.Set(is, serie.compute, serie.dataRefs)
 		if err != nil {
-			return fmt.Errorf("while updating cell: %w", err)
+			return fmt.Errorf("while updating cell[%q,%q] with record %v: %w", rowLabel, columnLabel, record, err)
+		} else if err == ErrEmptyValue && verbose {
+			fmt.Printf("WARNING: found record %v with empty value while updating cell[%q,%q]\n", record, rowLabel, columnLabel)
 		}
 	}
 	return nil
@@ -123,7 +127,7 @@ func (t *Table[T]) updateCrossCells(rowLabel string, columnLabel string, record 
 		sumRowLabel := rowLabel
 		for j := 0; j < len(t.rowSeries)+1; j++ {
 			if i != 0 || j != 0 {
-				err := t.updateCell(sumRowLabel, sumColumnLabel, record)
+				err := t.updateCell(sumRowLabel, sumColumnLabel, record, false)
 				if err != nil {
 					return err
 				}
@@ -185,7 +189,7 @@ func (t *Table[T]) registerValue(name string, dataRefs []DataRef, compute Comput
 	return nil
 }
 
-func (t *Table[T]) Generate() error {
+func (t *Table[T]) Generate(verbose bool) error {
 	if t.err != nil {
 		return t.err
 	}
@@ -232,7 +236,7 @@ func (t *Table[T]) Generate() error {
 		if len(columnLabel) == 0 {
 			return fmt.Errorf("empty column labels are not supported")
 		}
-		err = t.updateCell(rowLabel, columnLabel, record)
+		err = t.updateCell(rowLabel, columnLabel, record, verbose)
 		if err != nil {
 			return err
 		}

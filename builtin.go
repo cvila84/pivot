@@ -1,6 +1,7 @@
 package pivot
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -102,3 +103,5 @@ func Digits(n int) string {
 func InvalidType(element interface{}) error {
 	return fmt.Errorf("invalid type %T for element %q", element, element)
 }
+
+var ErrEmptyValue = errors.New("empty value")

@@ -17,6 +17,9 @@ func toFloat(element RawValue) (float64, error) {
 		return 0, InvalidType(element)
 	}
 	es, _ := element.(string)
+	if len(es) == 0 {
+		return 0, ErrEmptyValue
+	}
 	es = strings.Replace(es, ",", ".", 1)
 	result, err := strconv.ParseFloat(es, 32)
 	if err != nil {
